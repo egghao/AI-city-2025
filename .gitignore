@@ -3,6 +3,7 @@
 /data/Fisheye8K
 /data/VisDrone
 /results
+/models
 
 # Python
 __pycache__/
