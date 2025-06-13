@@ -1,0 +1,12 @@
+path: ../AI-city-2025  # dataset root dir
+train: data/Fisheye8K/train/images  # train images
+val: data/Fisheye8K/test/images  # val images
+test: data/Fisheye1K  # test images (optional)
+
+# Classes
+names:
+  0: Bus
+  1: Bike
+  2: Car
+  3: Pedestrain
+  4: Truck
