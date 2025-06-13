@@ -3,7 +3,7 @@ import os
 import cv2
 import numpy as np
 from pycocotools.coco import COCO
-from pycocotools.cocoeval_modified import COCOeval
+from cocoeval_modified import COCOeval
 import json
 
 def f1_score(predictions_path, ground_truths_path):
