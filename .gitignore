@@ -1,5 +1,7 @@
 *.zip
-/data
+/data/Fisheye1K
+/data/Fisheye8K
+/data/VisDrone
 /results
 
 # Python

@@ -11,7 +11,7 @@ def main():
     # Train the model
     results = model.train(data="data/Fisheye8k.yaml",
                         epochs=100,
-                        batch=32,
+                        batch=16,
                         imgsz=640,
                         device="0",  # specify the device to use, e.g., "0" for GPU 0
                         project="models",  # changed from "/models/" to "models"
