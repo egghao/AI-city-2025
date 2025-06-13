@@ -2,8 +2,10 @@
 /data/Fisheye1K
 /data/Fisheye8K
 /data/VisDrone
+/data/Synthetic_VisDrone
 /results
 /models
+
 
 # Python
 __pycache__/

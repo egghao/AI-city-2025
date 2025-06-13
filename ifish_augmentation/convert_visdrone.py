@@ -1,6 +1,6 @@
 import os
-from ifish_augmentation.ifisheye import *
-from ifish_augmentation.utils import *
+from ifisheye import *
+from utils import *
 import cv2
 import argparse
 from tqdm import tqdm

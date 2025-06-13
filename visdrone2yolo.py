@@ -78,7 +78,7 @@ def map_categories(category_id):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert dataset from VisDrone format to YOLO format")
-    parser.add_argument("--data_path", type=str, default="../visdrone", help="Path to VisDrone dataset")
+    parser.add_argument("--data_path", type=str, default="data/VisDrone", help="Path to VisDrone dataset")
     
     args = parser.parse_args()
 
