@@ -55,44 +55,47 @@ def img_pad_square(img, pad_value=0):
 
 def fish(img, distortion_coefficient):
     """
-        Convert normal image to fisheye image
+        Convert normal image to fisheye image using OpenCV remap for better performance
         - Params:
             img                     : the original image
             distortion_coefficient  : distortion coefficient (should be between 0-1)
         - Returns:
+            dstimg                 : fisheye image
     """
-    width, height, channel = img.shape
-
-    # RGB to RGBA
-    if len(img.shape) == 3 and img.shape[2] == 3:
-        img = np.dstack((img, np.full((width, height), 255)))
+    height, width = img.shape[:2]
     
-    # prepare array for dst image
-    dstimg = np.zeros_like(img)
-
-    # floats and calculations
-    w, h = float(width), float(height)
-
-    # easier calculation if we traverse x, y in dst image
-    for x in range(len(dstimg)):
-        for y in range(len(dstimg[x])):
-
-            # normalize x and y to be in interval of [-1, 1]
-            xnd, ynd = float((2*x - w)/w), float((2*y - h)/h)
-
-            # get xn and yn distance from normalized center
-            rd = np.sqrt(xnd**2 + ynd**2)
-
-            # new normalized pixel coordinates
-            xdu, ydu = get_fish_xn_yn(xnd, ynd, rd, distortion_coefficient)
-
-            # convert the normalized distorted xdn and ydn back to image pixels
-            xu, yu = int(((xdu + 1)*w)/2), int(((ydu + 1)*h)/2)
-
-            # if new pixel is in bounds copy from source pixel to destination pixel
-            if (0 <= xu) and (xu < img.shape[0]) and (0 <= yu) and (yu < img.shape[1]):
-                dstimg[x][y] = img[xu][yu]
-    return dstimg.astype(np.uint8)
+    # Create coordinate matrices
+    x = np.arange(width)
+    y = np.arange(height)
+    X, Y = np.meshgrid(x, y)
+    
+    # Normalize coordinates to [-1, 1]
+    X = (2 * X - width) / width
+    Y = (2 * Y - height) / height
+    
+    # Calculate radius
+    R = np.sqrt(X**2 + Y**2)
+    
+    # Calculate new coordinates
+    mask = (1 - distortion_coefficient * R**2) != 0
+    X_new = np.zeros_like(X)
+    Y_new = np.zeros_like(Y)
+    
+    X_new[mask] = X[mask] / (1 - distortion_coefficient * R[mask]**2)
+    Y_new[mask] = Y[mask] / (1 - distortion_coefficient * R[mask]**2)
+    
+    # Convert back to pixel coordinates
+    X_new = ((X_new + 1) * width / 2).astype(np.float32)
+    Y_new = ((Y_new + 1) * height / 2).astype(np.float32)
+    
+    # Create remap matrices
+    map_x = X_new
+    map_y = Y_new
+    
+    # Apply remap
+    dstimg = cv2.remap(img, map_x, map_y, interpolation=cv2.INTER_LINEAR)
+    
+    return dstimg
 
 
 def reverse_fish_xn_yn(source_x, source_y, radius, distortion):
