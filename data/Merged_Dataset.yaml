@@ -1,6 +1,6 @@
 path: ../AI-city-2025  # dataset root dir
-train: data/Fisheye8K/train/images  # train images
-val: data/Fisheye8K/val/images  # val images
+train: data/Merged_Dataset/train/images  # train images
+val: data/Merged_Dataset/val/images  # val images
 test: data/Fisheye1K  # test images (optional)
 
 # Classes

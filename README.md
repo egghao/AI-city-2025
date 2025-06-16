@@ -20,8 +20,19 @@ AI-city-2025/
 │   ├── Fisheye1K/
 │   │   └── (test images)
 │   └── Fisheye8k.yml
-├── utils.py
+├── models/
+│   ├── yolo11n.pt
+│   ├── yolo11s.pt
+│   └── yolo11m.pt
+├── ifish_augmentation/
+├── train.py
+├── test.py
 ├── eval.py
+├── utils.py
+├── merge_datasets.py
+├── visdrone2yolo.py
+├── download_visdrone.py
+├── cocoeval_modified.py
 ├── requirements.txt
 └── README.md
 ```
@@ -57,6 +68,65 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Dataset Preparation
+
+### Downloading VisDrone Dataset
+
+1. Download the VisDrone dataset using the provided script:
+```bash
+python download_visdrone.py --output_dir data/VisDrone
+```
+
+This will download:
+- VisDrone2019-DET-train.zip
+- VisDrone2019-DET-val.zip
+- VisDrone2019-DET-test-dev.zip
+- VisDrone2019-DET-test-challenge.zip
+
+### Converting VisDrone to YOLO Format
+
+1. Convert the VisDrone annotations to YOLO format:
+```bash
+python visdrone2yolo.py --visdrone_dir data/VisDrone \
+                        --output_dir data/visdrone_yolo \
+                        --split train
+```
+
+The script will:
+- Convert bounding box annotations to YOLO format
+- Create train/val/test splits
+- Generate dataset configuration file
+
+### Applying Fisheye Augmentation
+
+1. Apply fisheye distortion to create synthetic fisheye images:
+```bash
+python ifish_augmentation/convert_visdrone.py \
+    --input_dir data/visdrone_yolo \
+    --output_dir data/Synthetic_VisDrone \
+    --distortion 0.5
+```
+
+The augmentation process:
+- Applies fisheye distortion to regular images
+- Adjusts bounding box coordinates to match the distorted images
+- Creates a synthetic dataset with fisheye-like characteristics
+- Maintains the same directory structure (train/val splits)
+
+Parameters:
+- `--distortion`: Fisheye distortion coefficient (0-1, default: 0.5)
+- `--input_dir`: Directory containing YOLO-formatted VisDrone dataset
+- `--output_dir`: Directory to save synthetic fisheye images and labels
+
+### Merging Datasets (Optional)
+
+If you want to combine VisDrone with other datasets:
+```bash
+python merge_datasets.py --dataset1 data/Fisheye8K \
+                        --dataset2 data/Synthetic_VisDrone \
+                        --output_dir data/merged_dataset
+```
+
 ## Data Structure
 
 ### Training Data (Fisheye8K)
@@ -65,7 +135,7 @@ pip install -r requirements.txt
 - Includes `train.json` with ground truth annotations
 
 ### Validation Data (Fisheye8K test)
-- Located in `data/Fisheye8K/test/`
+- Located in `data/Fisheye8K/val/`
 - Used for model validation during training
 
 ### Test Data (Fisheye1K)
@@ -79,11 +149,31 @@ The model configuration is defined in `data/Fisheye8k.yml`. This YAML file speci
 - Class names
 - Training/validation split
 
+To train the model:
+```bash
+python train.py --model yolo11n.pt --data data/Fisheye8k.yml --epochs 100 --batch-size 16
+```
+
+Available model sizes:
+- YOLO11n (nano): 5.4MB
+- YOLO11s (small): 18MB
+- YOLO11m (medium): 39MB
+
+## Data Processing and Visualization
+
+### Dataset Conversion
+- `visdrone2yolo.py`: Converts VisDrone dataset format to YOLO format
+- `merge_datasets.py`: Merges multiple datasets for training
+
+### Visualization Tools
+- `visualize_labels.py`: Visualizes bounding box annotations on images
+- Results are saved in the `visualizations/` directory
+
 ## Evaluation
 
 Run the evaluation script using:
 ```bash
-python eval.py --image_folder /path/to/test/images \
+python test.py --image_folder /path/to/test/images \
                --model_path /path/to/model.pt \
                --max_fps 25.0 \
                --output_json predictions.json
@@ -125,6 +215,7 @@ The evaluation script reports:
 - Processing time per image
 - Overall FPS
 - Normalized FPS (relative to max_fps)
+- COCO-style metrics (mAP, precision, recall)
 
 ## Requirements
 
